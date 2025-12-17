@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Daily Study Checklist</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f8;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .container {
+      background: #fff;
+      width: 420px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.15);
+    }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .date {
+      text-align: center;
+      font-size: 14px;
+      color: #555;
+      margin-bottom: 15px;
+    }
+
+    .checklist label {
+      display: block;
+      margin: 6px 0;
+      cursor: pointer;
+    }
+
+    .extra {
+      margin-top: 15px;
+      padding-top: 10px;
+      border-top: 1px solid #ccc;
+    }
+
+    button {
+      margin-top: 15px;
+      width: 100%;
+      padding: 10px;
+      background: #4caf50;
+      border: none;
+      color: white;
+      font-size: 16px;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    button:hover {
+      background: #43a047;
+    }
+
+    .status {
+      text-align: center;
+      margin-top: 10px;
+      color: green;
+      font-size: 14px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h2>Daily Study Checklist</h2>
+  <div class="date" id="todayDate"></div>
+  <button id="enableNotify">Enable Daily Reminder</button>
+  <form id="checklistForm" class="checklist">
+
+    
+    <label><input type="checkbox" name="task" value="read"> Watched / read today’s topic</label>
+    <label><input type="checkbox" name="task" value="typed"> Typed code myself (not copy-paste)</label>
+    <label><input type="checkbox" name="task" value="broke"> Broke code at least once and fixed it</label>
+    <label><input type="checkbox" name="task" value="practice"> Practiced 2–3 small variations</label>
+    <label><input type="checkbox" name="task" value="excel"> Added today’s work to Excel tracker</label>
+    <label><input type="checkbox" name="task" value="git"> Committed code to GitHub</label>
+    <label><input type="checkbox" name="task" value="doubt"> Wrote 1 thing I didn’t understand</label>
+
+    
+    <div class="extra">
+      <strong>Project Day</strong>
+      <label><input type="checkbox" name="task" value="ui"> UI looks clean</label>
+      <label><input type="checkbox" name="task" value="readable"> Code is readable</label>
+      <label><input type="checkbox" name="task" value="console"> No console errors</label>
+      <label><input type="checkbox" name="task" value="refresh"> Works after refresh</label>
+      <label><input type="checkbox" name="task" value="explain"> Explained project in my own words</label>
+    </div>
+
+    <button type="submit">Save Today’s Progress</button>
+  </form>
+
+  <div class="status" id="statusMsg"></div>
+</div>
+
+<script>
+    const today = new Date().toISOString().split("T")[0];
+    const form = document.getElementById("checklistForm");
+    const statusMsg = document.getElementById("statusMsg");
+    const dateDiv = document.getElementById("todayDate");
+    const notifyBtn = document.getElementById("enableNotify");
+
+    dateDiv.textContent = "Date: " + today;
+
+    
+    const savedData = JSON.parse(localStorage.getItem(today));
+    if (savedData) {
+    document.querySelectorAll("input[type=checkbox]").forEach(cb => {
+        if (savedData.includes(cb.value)) cb.checked = true;
+    });
+    }
+
+
+    form.addEventListener("submit", function(e) {
+    e.preventDefault();
+
+    let checked = [];
+    document.querySelectorAll("input[type=checkbox]:checked")
+        .forEach(cb => checked.push(cb.value));
+
+    localStorage.setItem(today, JSON.stringify(checked));
+    statusMsg.textContent = "✅ Today’s progress saved!";
+    });
+
+    notifyBtn.addEventListener("click", () => {
+    if (!("Notification" in window)) {
+        alert("Your browser does not support notifications.");
+        return;
+    }
+
+    Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+        localStorage.setItem("notifyAllowed", "yes");
+        alert("✅ Daily reminder enabled!");
+        } else {
+        alert("❌ Notification permission denied.");
+        }
+    });
+    });
+
+    function dailyReminder() {
+    if (
+        Notification.permission === "granted" &&
+        localStorage.getItem("notifyAllowed") === "yes"
+    ) {
+        new Notification("📘 Study Reminder", {
+        body: "Don’t forget to complete today’s checklist!",
+        });
+    }
+    }
+
+    setInterval(() => {
+    const now = new Date();
+    if (now.getHours() === 22 && now.getMinutes() === 0) {
+        dailyReminder();
+    }
+    }, 60000);
+</script>
+
+<!-- this project was made using chatgpt -->
+</body>
+</html>
